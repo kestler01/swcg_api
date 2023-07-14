@@ -3,10 +3,11 @@
     "start": "nodemon server.js"
   },
   "dependencies": {
-    "mongodb": "^5.2.0",
-    "mongoose": "^7.0.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "mongodb": "^5.2.0",
+    "mongoose": "^7.0.3",
     "socket.io": "^4.7.1"
   }
 }
