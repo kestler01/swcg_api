@@ -1,19 +1,33 @@
 const mongoose = require('mongoose')
 
 const gameSchema = new mongoose.Schema({
-	host: {},
-	players: [],
-	empire: {},
-	rebels: {},
-	isStarted: { 
-        type: Boolean, 
-        default: false 
-    },
-	isCompleted: { 
-        type: Boolean, 
-        default: false 
-    },
-	data: {}, // type mixed. represented by empty object will hold game data after game start and be removed at end of game (also to be stored in remote temporary storage?)
+	host: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
+	},
+	players: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User',
+		},
+	],
+	empire: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
+	},
+	rebels: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
+	},
+	isStarted: {
+		type: Boolean,
+		default: false,
+	},
+	isCompleted: {
+		type: Boolean,
+		default: false,
+	},
+	data: {}, // type mixed. represented by empty object will hold game data after game start and be removed at end of game (also to be moved/stored in remote temporary storage?)
 })
 
 module.exports = mongoose.model('Game', gameSchema)
