@@ -4,17 +4,19 @@ const http = require('http')
 const server = http.createServer(app)
 // express basics above
 
-// other imports
+// import routes
+const errorHandler = require('./lib/error-handler')
 const {
 	signup,
 	signin,
 	signout,
 	changePassword,
-} = require('./routes/userRoutes')
-const errorHandler = require('./lib/errorHandler')
+} = require('./routes/user-routes')
 
-//db connection in between
+
+// load our process.env variables into the app
 require('dotenv').config()
+// connect to the database
 require('./config/database')
 
 // socket goodness below
@@ -26,8 +28,7 @@ const io = new Server(server,{
     }
 })
 
-
-
+// register our socket.io routes with the socket instance 
 io.on('connection', (socket) => {
 	console.log('a user connected with socket:', socket.id)
     
@@ -52,7 +53,7 @@ io.on('connection', (socket) => {
 		// console.log(socket.rooms)// interesting being able to get the socket rooms left on disconnect even tho cleanup is automated - will be great for trigger appropriate emits to those rooms 
 		console.log(' a user signed out')
     })
-    
+
     socket.on('disconnect', () => {
         console.log('user disconnected with socket:', socket.id)
     })

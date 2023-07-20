@@ -3,9 +3,15 @@ const {
 	BadParamsError,
 	DocumentNotFoundError,
 	BadCredentialsError,
-} = require('../lib/custom_errors')
+} = require('../lib/custom-errors')
 const bcrypt = require('bcrypt')
 const bcryptSaltRounds = 10
+let crypto
+try {
+	crypto = require('node:crypto')
+} catch (err) {
+	console.error('crypto support is disabled!')
+} 
 
 const routerObj = {} // declare my router pojo
 
