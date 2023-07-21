@@ -122,4 +122,26 @@ routerObj['signout'] = async (data, io, socketId, next) => {
 	}
 }
 
+routerObj['changeProfileName'] = async (data, io, socketId, next) => {
+	console.log('in changeProfileName route, data is :', data)
+	const token = data.token
+	try {
+		const token = data.token
+		const user = await User.findById(data._id)
+		if (!user) {
+			throw new DocumentNotFoundError()
+		}
+        if (!user.token === token ){
+            throw new BadCredentialsError()
+        }
+
+		//change user profile
+		
+		await user.save()
+		io.to(socketId).emit('changeProfileNameSuccess', user)
+	} catch (error) {
+		next(error, io, socketId)
+	}
+}
+
 module.exports = routerObj
