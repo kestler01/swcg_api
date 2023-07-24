@@ -27,6 +27,7 @@ const io = new Server(server,{
         origin: 'http://localhost:5173'
     }
 })
+// consider writing a ACK function for the socket.io instance to send responses automatically to the user socket
 
 // register our socket.io routes with the socket instance 
 io.on('connection', (socket) => {
