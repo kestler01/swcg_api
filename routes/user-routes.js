@@ -71,7 +71,7 @@ routerObj['signin'] = async (data, io, socketId, next) => {
 	}
 }
 
-routerObj['changePassword'] = async (data, io, socketId, next) => {
+routerObj['changePassword'] = async (data, io, socketId, next, ack) => {
 	console.log(
 		'in change password route, the data passed is',
 		data,
@@ -98,6 +98,7 @@ routerObj['changePassword'] = async (data, io, socketId, next) => {
 		user.hashPassword = hashPassword
 		await user.save()
 		io.to(socketId).emit('changePasswordSuccess')
+		ack({status:'ok'})
 	} catch (error) {
 		next(error, io, socketId)
 	}
@@ -122,23 +123,25 @@ routerObj['signout'] = async (data, io, socketId, next) => {
 	}
 }
 
-routerObj['changeProfileName'] = async (data, io, socketId, next) => {
+routerObj['changeProfileName'] = async (data, io, socketId, next, ack) => {
 	console.log('in changeProfileName route, data is :', data)
 	const token = data.token
 	try {
+		const newProfileName = data.newProfileName
 		const token = data.token
 		const user = await User.findById(data._id)
 		if (!user) {
 			throw new DocumentNotFoundError()
 		}
-        if (!user.token === token ){
-            throw new BadCredentialsError()
-        }
+        if (!user.token === token || !newProfileName) { // if its not the right user or there is not a new profile name then BadCreds error
+					throw new BadCredentialsError()
+				}
 
 		//change user profile
-		
+		user.profileName = newProfileName
 		await user.save()
 		io.to(socketId).emit('changeProfileNameSuccess', user)
+		ack({status: 'ok'})
 	} catch (error) {
 		next(error, io, socketId)
 	}

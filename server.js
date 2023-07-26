@@ -11,6 +11,7 @@ const {
 	signin,
 	signout,
 	changePassword,
+    changeProfileName,
 } = require('./routes/user-routes')
 
 
@@ -44,15 +45,19 @@ io.on('connection', (socket) => {
         signin(data, io, socket.id, errorHandler)
     })
     // should write a is logged in middleware to protect auth required routes
-    socket.on('changePassword', (data) => {
+    socket.on('changePassword', (data, ack) => {
         console.log('received change pw request')
-        changePassword(data, io, socket.id, errorHandler)
+        changePassword(data, io, socket.id, errorHandler, ack)
 	})
 
 	socket.on('signout', (data) => {
 		signout(data, io, socket.id, errorHandler)
 		// console.log(socket.rooms)// interesting being able to get the socket rooms left on disconnect even tho cleanup is automated - will be great for trigger appropriate emits to those rooms 
 		console.log(' a user signed out')
+    })
+    
+    socket.on('changeProfileName', (data, ack) => {
+        changeProfileName(data, io, socket.id, errorHandler, ack)
     })
 
     socket.on('disconnect', () => {
