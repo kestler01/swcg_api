@@ -4,8 +4,20 @@ const http = require('http')
 const server = http.createServer(app)
 // express basics above
 
-//db connection in between
+// import routes
+const errorHandler = require('./lib/error-handler')
+const {
+	signup,
+	signin,
+	signout,
+	changePassword,
+    changeProfileName,
+} = require('./routes/user-routes')
+
+
+// load our process.env variables into the app
 require('dotenv').config()
+// connect to the database
 require('./config/database')
 
 // socket goodness below
@@ -16,10 +28,38 @@ const io = new Server(server,{
         origin: 'http://localhost:5173'
     }
 })
+// consider writing a ACK function for the socket.io instance to send responses automatically to the user socket
 
+// register our socket.io routes with the socket instance 
 io.on('connection', (socket) => {
 	console.log('a user connected with socket:', socket.id)
     
+    socket.on('signup', (data) => {
+			console.log(' a user signed up ')
+			console.log(data)
+			signup(data, io, socket.id, errorHandler)
+    })
+    socket.on('signin', (data) => {
+        console.log(' a user signed in ')
+        console.log(data)
+        signin(data, io, socket.id, errorHandler)
+    })
+    // should write a is logged in middleware to protect auth required routes
+    socket.on('changePassword', (data, ack) => {
+        console.log('received change pw request')
+        changePassword(data, io, socket.id, errorHandler, ack)
+	})
+
+	socket.on('signout', (data) => {
+		signout(data, io, socket.id, errorHandler)
+		// console.log(socket.rooms)// interesting being able to get the socket rooms left on disconnect even tho cleanup is automated - will be great for trigger appropriate emits to those rooms 
+		console.log(' a user signed out')
+    })
+    
+    socket.on('changeProfileName', (data, ack) => {
+        changeProfileName(data, io, socket.id, errorHandler, ack)
+    })
+
     socket.on('disconnect', () => {
         console.log('user disconnected with socket:', socket.id)
     })

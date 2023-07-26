@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			unique: true,
 		},
-		profileName: { 
+		profileName: {
 			type: String,
 			required: true,
 			unique: true,
@@ -16,7 +16,10 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		token: String,
+		token: {
+			type: String,
+			default: null,
+		},
 		socketId: {
 			type: String,
 			default: null,
@@ -38,8 +41,8 @@ const userSchema = new mongoose.Schema(
 				delete user.hashPassword
 				delete user.email
 				return user
-			}
-		}
+			},
+		},
 	}
 )
 
