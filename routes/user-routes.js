@@ -48,7 +48,7 @@ routerObj['signup'] = async (data, io, socketId, next) => {
 	}
 }
 
-routerObj['signin'] = async (data, io, socketId, next) => {
+routerObj['signin'] = async (data, io, socket, next) => {
 	console.log('in userRouter for signin, the data passed is :', data)
 	const pw = data.password
 	try {
@@ -56,18 +56,21 @@ routerObj['signin'] = async (data, io, socketId, next) => {
 		if (!user) {
 			throw new BadCredentialsError()
 		}
-		console.log(user)
+		// console.log(user)
 		const passwordCorrect = await bcrypt.compare(pw, user.hashPassword)
 		if (!passwordCorrect) {
 			throw new BadCredentialsError()
 		}
 		const token = crypto.randomBytes(16).toString('hex')
 		user.token = token
-		user.socketId = socketId
+		// console.log(socket.handshake.auth)
+		socket.handshake.auth.user = user
+		// console.log(socket.handshake.auth)
+		user.socketId = socket.id
 		await user.save()
-		io.to(socketId).emit('signinSuccess', user.toObject())
+		io.to(socket.id).emit('signinSuccess', user.toObject())
 	} catch (error) {
-		next(error, io, socketId)
+		next(error, io, socket.id)
 	}
 }
 
@@ -104,7 +107,7 @@ routerObj['changePassword'] = async (data, io, socketId, next, ack) => {
 	}
 }
 
-routerObj['signout'] = async (data, io, socketId, next) => {
+routerObj['signout'] = async (data, io, socket, next, ack) => {
 	console.log('in signout route, data is :', data)
 	try {
 		const user = await User.findById(data._id)
@@ -117,9 +120,12 @@ routerObj['signout'] = async (data, io, socketId, next) => {
         // clear the socket - no more emits going here
         user.socketId = null
         await user.save()
-		io.to(socketId).emit('signoutSuccess')
+		socket.handshake.auth.user = user
+		socket.leave('gameHub')
+		io.to(socket.id).emit('signoutSuccess')
+		ack({status: 'ok'})
 	} catch (error) {
-		next(error, io, socketId)
+		next(error, io, socket.id)
 	}
 }
 
