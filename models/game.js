@@ -32,6 +32,9 @@ const gameSchema = new mongoose.Schema({
 		default: false,
 	},
 	data: {}, // type mixed. represented by empty object will hold game data after game start and be removed at end of game (also to be moved/stored in remote temporary storage?)
+	
+},{
+	timestamps: true,
 })
 
 module.exports = mongoose.model('Game', gameSchema)
