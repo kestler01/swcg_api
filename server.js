@@ -5,7 +5,7 @@ const server = http.createServer(app)
 // express basics above
 
 // import routes
-const errorHandler = require('./lib/error-handler')
+const errorHandler = require('./lib/errors/error-handler')
 const {
 	signup,
 	signin,
@@ -20,6 +20,7 @@ const {
 	leaveGame,
 	deleteGame,
 	startGame,
+	playCard,
 } = require('./routes/game-routes')
 
 // load our process.env variables into the app
@@ -32,7 +33,7 @@ const { Server } = require('socket.io')
 // create a new socket.io instance by passing the express server to the sockets Server constructor function,
 const io = new Server(server,{
     cors: {
-        origin:'http://127.0.0.1:5173' // cannot use localhost here
+        origin:'*' // cannot use localhost here
     }
 })
 // consider writing a general ACK function for the socket.io instance to send responses automatically to the user socket
@@ -77,18 +78,16 @@ io.on('connection', (socket) => {
 		changeProfileName(data, io, socket.id, errorHandler, ack)
 	})
 
-    // gameHub could be it's own io instance, but for now we will jut have it be a room users join. 
+    // gameHub could be it's own io instance, but for now we will just have it be a room users join. Doing so in 2.0 will make the app more scalable and follow better separation of concerns 
 	socket.on('subscribeToGameHub', (data, ack) => {
         console.log('joining gameHub')
 		socket.join('gameHub')
-		// ack(data, ack)
 	})
 	socket.on('unsubscribeToGameHub', (data, ack) => {
         console.log('leaving gameHub')
 		socket.leave('gameHub')
-		// ack(data, ack)
 	})
-
+	// socket endpoints for the game controller, could also be it's own socket instance per game, as opposed to per room. 2.0 will implement this so that the app is more Scalable + better SOC. 
 	socket.on('createGame', (data, ack) => {
 		createGame(data, io, socket, errorHandler, ack)
 	})
@@ -100,7 +99,6 @@ io.on('connection', (socket) => {
         joinGame(data, io, socket, errorHandler, ack)
     })
     socket.on('leaveGame', (data, ack) => {
-        console.log('leaving game', data)
         leaveGame(data, io, socket, errorHandler, ack)
     })
     socket.on('deleteGame', (data, ack) => {
@@ -109,7 +107,14 @@ io.on('connection', (socket) => {
 	socket.on('startGame', (data, ack) => {
 		startGame(data, io, socket, errorHandler, ack)
 	})
-
+	socket.on('playCard', (data, ack) => {
+		// console.log('in playCard entrypoint', socket.handshake)
+		data.user=socket.handshake.auth.user
+		playCard(data, io, socket, errorHandler, ack)
+	})
+	// pass turn
+	// prompt player
+	// 
 })
 
 server.listen(3000, () => {

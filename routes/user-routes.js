@@ -3,7 +3,7 @@ const {
 	BadParamsError,
 	DocumentNotFoundError,
 	BadCredentialsError,
-} = require('../lib/custom-errors')
+} = require('../lib/errors/custom-errors')
 const bcrypt = require('bcrypt')
 const bcryptSaltRounds = 10
 let crypto
@@ -11,7 +11,7 @@ try {
 	crypto = require('node:crypto')
 } catch (err) {
 	console.error('crypto support is disabled!')
-} 
+}
 
 const routerObj = {} // declare my router pojo
 
@@ -27,22 +27,22 @@ routerObj['signup'] = async (data, io, socketId, next) => {
 		) {
 			throw new BadParamsError()
 		}
-        // we have good params
-        // hash the password
+		// we have good params
+		// hash the password
 		const hashPassword = await bcrypt.hash(data.password, bcryptSaltRounds)
-        // get the other details
+		// get the other details
 		let { email, profileName } = data
-        // build our data object for creation 
+		// build our data object for creation
 		let userData = { email, profileName, hashPassword }
 		// userData.email = data.email,
 		// userData.hashedPassword = hash
 		let user = await User.create(userData)
 		// send the new user object back with status 201, but `hashedPassword`
 		// won't be send because of the `transform` in the User model
-        // removed the email and hash password from the data for sending to client 
+		// removed the email and hash password from the data for sending to client
 		user = await user.toObject()
-		io.to(socketId).emit('signupSuccess', user) 
-        // add auto sign in functionality here
+		io.to(socketId).emit('signupSuccess', user)
+		// add auto sign in functionality here
 	} catch (error) {
 		next(error, io, socketId) // promisedError, io, socketId
 	}
@@ -83,16 +83,16 @@ routerObj['changePassword'] = async (data, io, socketId, next, ack) => {
 	)
 	const pw = data.password
 	const newPw = data.newPassword
-    const token = data.token
-    const userId = data._id
+	const token = data.token
+	const userId = data._id
 	try {
 		const user = await User.findById(userId)
 		if (!user) {
 			throw new DocumentNotFoundError()
 		}
-        if (!user.token === token){
-            throw new BadCredentialsError()
-        }
+		if (!user.token === token) {
+			throw new BadCredentialsError()
+		}
 		const passwordCorrect = await bcrypt.compare(pw, user.hashPassword)
 		if (!passwordCorrect) {
 			throw new BadCredentialsError()
@@ -101,7 +101,7 @@ routerObj['changePassword'] = async (data, io, socketId, next, ack) => {
 		user.hashPassword = hashPassword
 		await user.save()
 		io.to(socketId).emit('changePasswordSuccess')
-		ack({status:'ok'})
+		ack({ status: 'ok' })
 	} catch (error) {
 		next(error, io, socketId)
 	}
@@ -112,18 +112,18 @@ routerObj['signout'] = async (data, io, socket, next, ack) => {
 	try {
 		const user = await User.findById(data._id)
 		if (!user) {
-            throw new DocumentNotFoundError()
-        }
-        // scramble the token
-        const token = crypto.randomBytes(16).toString('hex')
-        user.token = token
-        // clear the socket - no more emits going here
-        user.socketId = null
-        await user.save()
+			throw new DocumentNotFoundError()
+		}
+		// scramble the token
+		const token = crypto.randomBytes(16).toString('hex')
+		user.token = token
+		// clear the socket - no more emits going here
+		user.socketId = null
+		await user.save()
 		socket.handshake.auth.user = user
 		socket.leave('gameHub')
 		io.to(socket.id).emit('signoutSuccess')
-		ack({status: 'ok'})
+		ack({ status: 'ok' })
 	} catch (error) {
 		next(error, io, socket.id)
 	}
@@ -139,15 +139,16 @@ routerObj['changeProfileName'] = async (data, io, socketId, next, ack) => {
 		if (!user) {
 			throw new DocumentNotFoundError()
 		}
-        if (!user.token === token || !newProfileName) { // if its not the right user or there is not a new profile name then BadCreds error
-					throw new BadCredentialsError()
-				}
+		if (!user.token === token || !newProfileName) {
+			// if its not the right user or there is not a new profile name then BadCreds error
+			throw new BadCredentialsError()
+		}
 
 		//change user profile
 		user.profileName = newProfileName
 		await user.save()
 		io.to(socketId).emit('changeProfileNameSuccess', user)
-		ack({status: 'ok'})
+		ack({ status: 'ok' })
 	} catch (error) {
 		next(error, io, socketId)
 	}

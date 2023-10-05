@@ -1,4 +1,8 @@
 {
+  "name": "SWCG_API",
+  "author":"Andrew Kidd-Kestler",
+  "version": "0.5",
+  "description": "An express app leveraging socketIo for realtime communication between players to play the 'Star Wars deck building card game': designed by Caleb Grace and made by Fantasy Flight Games",
   "scripts": {
     "start": "nodemon server.js"
   },
